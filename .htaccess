@@ -1,0 +1,15 @@
+# 網站監控系統 - 安全設定
+# 禁止直接訪問敏感文件
+
+Options -Indexes
+
+# 禁止直接訪問配置與核心文件
+<FilesMatch "(config\.php|Monitor\.php|check\.php|\.log)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order Allow,Deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
