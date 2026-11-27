@@ -32,6 +32,22 @@ if ($cfg['provider'] === 'ultramsg') {
     $checks['ultra_to']   = array('name' => 'To 手機號碼已填寫（國際格式 +852...）', 'ok' => !empty($cfg['to']), 'detail' => 'To=' . ($cfg['to'] ?: '（未填）'));
 }
 
+if ($cfg['provider'] === 'callmebot') {
+    $checks['cmb_phone'] = array('name' => 'CallMeBot 手機號碼已填寫', 'ok' => !empty($cfg['callmebot_phone']), 'detail' => $cfg['callmebot_phone'] ?: '缺少 callmebot_phone，格式 +852...');
+    $checks['cmb_api']   = array('name' => 'CallMeBot API Key 已填寫', 'ok' => !empty($cfg['callmebot_api']), 'detail' => $cfg['callmebot_api'] ? 'API Key 已填寫' : '缺少 callmebot_api');
+}
+
+if ($cfg['provider'] === 'greenapi') {
+    $checks['green_id'] = array('name' => 'Green API Instance ID 已填寫', 'ok' => !empty($cfg['greenapi_id']), 'detail' => $cfg['greenapi_id'] ?: '缺少 greenapi_id');
+    $checks['green_token'] = array('name' => 'Green API Token 已填寫', 'ok' => !empty($cfg['greenapi_token']), 'detail' => $cfg['greenapi_token'] ? 'Token 已填寫' : '缺少 greenapi_token');
+    $checks['green_to'] = array('name' => '收件人手機號碼已填寫（純數字，例如85254864677）', 'ok' => !empty($cfg['to']), 'detail' => 'To=' . ($cfg['to'] ?: '（未填）'));
+}
+
+if ($cfg['provider'] === 'telegram') {
+    $checks['tg_token'] = array('name' => 'Telegram Bot Token 已填寫', 'ok' => !empty($cfg['telegram_bot_token']), 'detail' => $cfg['telegram_bot_token'] ?: '缺少 telegram_bot_token');
+    $checks['tg_chatid'] = array('name' => 'Telegram Chat ID 已填寫', 'ok' => !empty($cfg['telegram_chat_id']), 'detail' => $cfg['telegram_chat_id'] ?: '缺少 telegram_chat_id');
+}
+
 // 發送測試
 if (isset($_POST['send_test'])) {
     // 透過反射呼叫 sendWhatsApp
@@ -136,6 +152,30 @@ if (isset($_POST['send_test'])) {
                 <li>請確認 Ultramsg 後台的 Instance 狀態是「Connected」。</li>
                 <li>To 號碼格式為國際格式，例如香港：<code>+85291234567</code>，不要加前面的 0。</li>
                 <li>免費版每日有發送額度限制，超過會發送失敗。</li>
+                <?php endif; ?>
+                <?php if ($cfg['provider'] === 'callmebot'): ?>
+                <li>CallMeBot 啟用：先新增聯絡人 +34 644 61 91 98，發送 <code>I allow callmebot to send me messages</code> 取得 API Key。</li>
+                <li>如果無法打開聊天窗口，可以點<a href="https://wa.me/34644619198" target="_blank">這裡直接打開WhatsApp</a>。</li>
+                <?php endif; ?>
+                <?php if ($cfg['provider'] === 'greenapi'): ?>
+                <li><strong>設定步驟：</strong>
+                    <ol style="margin-left:20px; margin-top:5px;">
+                        <li>到 <a href="https://green-api.com/" target="_blank" style="color:#00d4ff;">green-api.com</a> 註冊免費帳號</li>
+                        <li>建立 Developer 免費實例，取得 idInstance 和 apiTokenInstance</li>
+                        <li>掃描頁面QR code綁定你的WhatsApp（就像綁定WhatsApp Web一樣）</li>
+                        <li>填寫config.php中的 greenapi_id 和 greenapi_token，to 欄位填純數字手機號碼例如 85254864677</li>
+                    </ol>
+                </li>
+                <li>免費額度：每天100條訊息，足夠監控使用，不需要加機器人好友。</li>
+                <?php endif; ?>
+                <?php if ($cfg['provider'] === 'telegram'): ?>
+                <li><strong>設定步驟：</strong>
+                    <ol style="margin-left:20px; margin-top:5px;">
+                        <li>Telegram搜尋 @BotFather，發送 /newbot 建立機器人取得Token</li>
+                        <li>搜尋 @getidsbot，發送 /start 取得你的Chat ID</li>
+                        <li>填入config即可使用，100%送達，無發送限制。</li>
+                    </ol>
+                </li>
                 <?php endif; ?>
                 <li>發送失敗時可查看 <code>logs/monitor.log</code>，最後會記錄 API 回應的錯誤原因。</li>
             </ul>

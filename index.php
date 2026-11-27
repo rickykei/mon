@@ -220,8 +220,8 @@ $refreshInterval = $monitor->config['settings']['check_interval'] * 60;
 <body>
     <div class="container">
         <div class="header">
-            <h1>🖥️ 網站監控儀表板</h1>
-            <p>即時監控您的所有網站狀態，故障時自動發送WhatsApp通知（通知服務：<?php echo htmlspecialchars($monitor->getProviderName()); ?>）</p>
+            <h1></h1>
+            <p></p>
         </div>
 
         <div id="message" class="message <?php echo $messageType; ?> <?php echo $message ? 'show' : ''; ?>"><?php echo $message; ?></div>
@@ -246,8 +246,8 @@ $refreshInterval = $monitor->config['settings']['check_interval'] * 60;
         </div>
 
         <div class="actions">
-            <button id="btn-check" class="btn btn-primary">🔄 立即檢測所有網站</button>
-            <a href="test_whatsapp.php" class="btn btn-secondary">📱 測試WhatsApp通知</a>
+            <button id="btn-check" class="btn btn-primary"> </button>
+            <a href=" " class="btn btn-secondary">  </a>
         </div>
 
         <div class="sites-grid" id="sites-grid">
@@ -279,7 +279,7 @@ $refreshInterval = $monitor->config['settings']['check_interval'] * 60;
                             </div>
                         </div>
                         <div class="site-url">
-                            🔗 <a href="<?php echo htmlspecialchars($site['url']); ?>" target="_blank"><?php echo htmlspecialchars(isset($site['real_url']) ? $site['real_url'] : $site['url']); ?></a>
+                            🔗 <a href="<?php echo htmlspecialchars($site['real_url']); ?>" target="_blank"><?php echo htmlspecialchars(isset($site['url']) ? $site['url'] : $site['url']); ?></a>
                         </div>
                         <?php if (!$site['online'] && isset($site['error']) && $site['error']): ?>
                             <div class="error-msg">⚠️ <?php echo htmlspecialchars($site['error']); ?></div>

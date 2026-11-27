@@ -1,7 +1,5 @@
 <?php
-/**
- * AJAX 檢測接口：後台檢測所有網站並返回 JSON，避免頁面卡住
- */
+ 
 require_once __DIR__ . '/Monitor.php';
 
 header('Content-Type: application/json; charset=utf-8');

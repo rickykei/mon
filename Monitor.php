@@ -43,6 +43,8 @@ class WebsiteMonitor {
             'twilio'    => 'Twilio',
             'ultramsg'  => 'Ultramsg',
             'callmebot' => 'CallMeBot',
+            'greenapi'  => 'Green API',
+            'telegram'  => 'Telegram',
         );
         return isset($names[$provider]) ? $names[$provider] : '未設定';
     }
@@ -255,7 +257,7 @@ class WebsiteMonitor {
                 "[WhatsApp/Twilio] %s | HTTP %d | %s",
                 $ok ? 'SUCCESS' : 'FAIL',
                 $httpCode,
-                $curlErr ? $curlErr : mb_substr(str_replace(array("\r","\n"), ' ', $response), 0, 300)
+                $curlErr ? $curlErr : substr(str_replace(array("\r","\n"), ' ', $response), 0, 300)
             ));
             return $ok;
         }
@@ -289,7 +291,7 @@ class WebsiteMonitor {
                 "[WhatsApp/Ultramsg] %s | HTTP %d | %s",
                 $ok ? 'SUCCESS' : 'FAIL',
                 $httpCode,
-                $curlErr ? $curlErr : mb_substr(str_replace(array("\r","\n"), ' ', $response), 0, 300)
+                $curlErr ? $curlErr : substr(str_replace(array("\r","\n"), ' ', $response), 0, 300)
             ));
             return $ok;
         }
@@ -305,7 +307,79 @@ class WebsiteMonitor {
             ));
             $response = @file_get_contents($apiUrl, false, $ctx);
             $ok = ($response !== false && stripos($response, 'success') !== false);
-            $this->log(sprintf("[WhatsApp/CallMeBot] %s | %s", $ok ? 'SUCCESS' : 'FAIL', $response ? mb_substr($response, 0, 200) : 'no response'));
+            $this->log(sprintf("[WhatsApp/CallMeBot] %s | %s", $ok ? 'SUCCESS' : 'FAIL', $response ? substr($response, 0, 200) : 'no response'));
+            return $ok;
+        }
+
+        if ($cfg['provider'] === 'greenapi') {
+            $instanceId = $cfg['greenapi_id'];
+            $apiToken   = $cfg['greenapi_token'];
+            $to         = $cfg['to'];
+            // Green API 要求手機號碼格式為 國家碼+號碼@c.us，例如 85254864677@c.us
+            if (strpos($to, '@c.us') === false) {
+                $to = preg_replace('/[^0-9]/', '', $to) . '@c.us';
+            }
+            $url = "https://api.green-api.com/waInstance{$instanceId}/sendMessage/{$apiToken}";
+
+            $data = array(
+                'chatId' => $to,
+                'message' => $message,
+            );
+
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlErr  = curl_error($ch);
+            curl_close($ch);
+
+            $respData = json_decode($response, true);
+            $ok = ($httpCode >= 200 && $httpCode < 300 && isset($respData['idMessage']));
+            $this->log(sprintf(
+                "[WhatsApp/GreenAPI] %s | HTTP %d | %s",
+                $ok ? 'SUCCESS' : 'FAIL',
+                $httpCode,
+                $curlErr ? $curlErr : substr(str_replace(array("\r","\n"), ' ', $response), 0, 300)
+            ));
+            return $ok;
+        }
+
+        if ($cfg['provider'] === 'telegram') {
+            $botToken = $cfg['telegram_bot_token'];
+            $chatId   = $cfg['telegram_chat_id'];
+            $url = "https://api.telegram.org/bot{$botToken}/sendMessage";
+
+            $data = array(
+                'chat_id' => $chatId,
+                'text'    => $message,
+                'parse_mode' => 'HTML',
+            );
+
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlErr  = curl_error($ch);
+            curl_close($ch);
+
+            $ok = ($httpCode >= 200 && $httpCode < 300);
+            $this->log(sprintf(
+                "[Telegram] %s | HTTP %d | %s",
+                $ok ? 'SUCCESS' : 'FAIL',
+                $httpCode,
+                $curlErr ? $curlErr : substr(str_replace(array("\r","\n"), ' ', $response), 0, 300)
+            ));
             return $ok;
         }
 
